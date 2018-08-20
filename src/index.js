@@ -96,13 +96,45 @@ class LexChat extends React.Component {
   }
 
   showResponse(lexResponse) {
-
     var conversationDiv = document.getElementById('conversation');
     var responsePara = document.createElement("P");
     responsePara.className = 'lexResponse';
     if (lexResponse.message) {
-      responsePara.appendChild(document.createTextNode(lexResponse.message));
+      var indexOfLink = lexResponse.message.indexOf("http");
+      if (indexOfLink !== -1){
+        var link = lexResponse.message.substring(indexOfLink);
+        var a = document.createElement('a');
+        var linkText = document.createTextNode("here");
+        a.appendChild(linkText);
+        a.title = "iCARE Help";
+        a.href = link;
+        a.target = "_blank";
+
+        responsePara.appendChild(document.createTextNode("Click "));
+        responsePara.appendChild(a);
+        responsePara.appendChild(document.createTextNode(" for help on our iCARE site."));
+      }
+      else {
+        responsePara.appendChild(document.createTextNode(lexResponse.message));
+      }
       responsePara.appendChild(document.createElement('br'));
+    }
+    if(lexResponse.responseCard){
+      var buttonGroup = document.createElement('div');
+      buttonGroup.id = 'buttonGroup';
+      for (let x of lexResponse.responseCard.genericAttachments[0].buttons){
+        var button = document.createElement('button');
+        var buttonText = document.createTextNode(x.text);
+        button.appendChild(buttonText);
+        button.value = x.value;
+        button.onclick = (e) => {
+          document.getElementById('inputField').value = e.target.value;
+          this.pushChat(e);
+          document.getElementById('buttonGroup').hidden = true;
+        };
+        buttonGroup.appendChild(button);
+      }
+      responsePara.appendChild(buttonGroup);
     }
     if (lexResponse.dialogState === 'ReadyForFulfillment') {
       responsePara.appendChild(document.createTextNode(
@@ -124,38 +156,45 @@ class LexChat extends React.Component {
   render() {
 
     const inputStyle = {
-      padding: '4px',
-      fontSize: 24,
-      width: '388px',
-      height: '40px',
+      padding: '3px',
+      fontSize: 15,
+      width: '294px',
+      height: '30px',
       borderRadius: '1px',
-      border: '10px'
+      border: '7px'
     }
 
     const conversationStyle = {
-      width: '400px',
+      width: '300px',
       height: this.props.height,
       border: 'px solid #ccc',
       backgroundColor: this.props.backgroundColor,
-      padding: '4px',
+      padding: '3px',
       overflow: 'scroll',
       borderBottom: 'thin ridge #bfbfbf'
     }
 
     const headerRectStyle = {
-      backgroundColor: '#000000', 
-      width: '408px', 
-      height: '40px',
+      backgroundColor: '#FFFFFF', 
+      borderTop: '2px solid #66AFE9',
+      borderLeft: '2px solid #66AFE9',
+      borderRight: '2px solid #66AFE9',
+      boxShadow: '0 0 5px #C7D9E8',
+      width: '306px', 
+      height: '30px',
       textAlign: 'center',
-      paddingTop: 12,
-      paddingBottom: -12,
-      color: '#FFFFFF',
-      fontSize: '24px'
+      paddingTop: 9,
+      paddingBottom: -9,
+      color: '#333333',
+      fontSize: '18px'
     }
 
     const chatcontainerStyle = {
       backgroundColor: '#FFFFFF',
-      width: 408
+      borderLeft: '2px solid #66AFE9',
+      borderRight: '2px solid #66AFE9',
+      boxShadow: '0 0 5px #C7D9E8',
+      width: 306
     }
 
     const chatFormStyle = {
@@ -167,14 +206,14 @@ class LexChat extends React.Component {
     return (
       <div id="chatwrapper">
         <div id="chat-header-rect" style={headerRectStyle} onClick={this.handleClick} >{this.props.headerText}
-              {(this.state.visible === 'open') ? <span className='chevron top'></span> : <span className='chevron bottom'></span>}
+              {(this.state.visible === 'open') ? <span className='chevron bottom'></span> : <span className='chevron top'></span>}
         </div>
         <div id="chatcontainer" className={this.state.visible} style={chatcontainerStyle}>
           <div id="conversation" style={conversationStyle} ></div>
             <form id="chatform" style={chatFormStyle} onSubmit={this.pushChat.bind(this)}>
                 <input type="text"
                        id="inputField"
-                       size="40"
+                       size="30"
                        value={this.state.data}
                        placeholder={this.props.placeholder}
                        onChange={this.handleChange.bind(this)}
